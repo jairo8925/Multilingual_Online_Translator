@@ -1,6 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 
+
+s = requests.Session()
+
 languages = {
     '1': 'arabic',
     '2': 'german',
@@ -17,40 +20,67 @@ languages = {
     '13': 'turkish'
 }
 
-print("Hello, you're welcome to the translator. Translator supports:")
-for k, v in languages.items():
-    print(k + ". " + v.capitalize())
 
-print("Type the number of your language:")
-language_from = input()
-print("Type the number of language you want to translate to:")
-language_to = input()
-print("Type the word you want to translate:")
-word = input()
+def save_to_file(filename, language, translation, sentence_from, sentence_to):
+    word_file = open(filename, "a", encoding="utf-8")
+    word_file.write(language + " Translations:\n")
+    word_file.write(translation + "\n\n")
+    word_file.write(language + " Example:\n")
+    word_file.write(sentence_from + "\n")
+    word_file.write(sentence_to + "\n\n\n")
+    word_file.close()
 
-url = "https://context.reverso.net/translation/" + languages.get(language_from) + "-" + languages.get(language_to) + "/" + word
-language_to = languages.get(language_to).capitalize()
 
-r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+def translate(src, dest, word):
+    url = "https://context.reverso.net/translation/" + src + "-" + dest + "/" + word
+    language = dest.capitalize()
+    r = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
 
-if r.status_code == 200:
-    print()
-    print(language_to, "Translations:")
+    if r.status_code == 200:
+        print()
+        print(language, "Translations:")
 
-    soup = BeautifulSoup(r.content, "html.parser")
-    translations = []
-    div = soup.find("div", {"id": "translations-content"})
-    for a in div.find_all("a"):
-        translations.append(a.text.strip())
-    print("\n".join(translations[:5]))
-    print()
+        soup = BeautifulSoup(r.content, "html.parser")
+        div = soup.find("div", {"id": "translations-content"})
+        translation = div.find("a").text.strip()
+        print(translation)
+        print()
 
-    examples = []
-    section = soup.find("section", {"id": "examples-content"})
-    for span in section.find_all("span", {"class": "text"}):
-        examples.append(span.text.strip())
-    print(language_to, "Examples:")
-    print("\n\n".join(("\n".join(j for j in examples[i:i+2]) for i in range(0, 10, 2))))
+        section = soup.find("section", {"id": "examples-content"})
+        examples = [t.text.strip() for t in section.find_all("span", {"class": "text"})]
+        print(language, "Example:")
+        sentence_from = examples[0]
+        sentence_to = examples[1]
+        print(sentence_from)
+        print(sentence_to)
+        print()
 
-else:
-    print("Try again?")
+        save_to_file(word + ".txt", language, translation, sentence_from, sentence_to)
+
+    else:
+        print("Try again?")
+
+
+def main():
+    print("Hello, you're welcome to the translator. Translator supports:")
+    for num, lang in languages.items():
+        print(num + ". " + lang.capitalize())
+
+    print("Type the number of your language:")
+    language_from = input()
+    print("Type the number of a language you want to translate to or '0' to translate to all languages:")
+    language_to = input()
+    print("Type the word you want to translate:")
+    word_to_translate = input()
+
+    if language_to == "0":
+        for i in range(1, 14):
+            if str(i) == language_from:
+                continue
+            translate(languages.get(language_from), languages.get(str(i)), word_to_translate)
+    else:
+        translate(languages.get(language_from), languages.get(language_to), word_to_translate)
+
+
+if __name__ == "__main__":
+    main()
