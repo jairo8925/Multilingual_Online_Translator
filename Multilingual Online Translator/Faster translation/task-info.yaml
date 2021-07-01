@@ -170,6 +170,15 @@ files:
     if __name__ == '__main__':
         TranslatorTest('translator.translator').run_tests()
   learner_created: false
+- name: translator/really.txt
+  visible: true
+  learner_created: true
+- name: translator/wait.txt
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/99/stages/548/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Thu, 01 Jul 2021 00:17:49 UTC
 record: -1
