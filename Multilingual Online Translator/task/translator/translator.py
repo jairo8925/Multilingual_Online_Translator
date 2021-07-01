@@ -24,16 +24,16 @@ languages = {
 
 def save_to_file(filename, language, translations, examples):
     word_file = open(filename, "a", encoding="utf-8")
-    word_file.write(language + " Translations:\n")
+    word_file.write(f"{language} Translations:\n")
 
     for t in translations[:min(5, len(translations))]:
         word_file.write(t)
     word_file.write("\n")
 
     if len(examples) == 2:
-        word_file.write(language + " Example:\n")
+        word_file.write(f"{language} Example:\n")
     else:
-        word_file.write(language + " Examples:\n")
+        word_file.write(f"{language} Examples:\n")
 
     word_file.write("\n\n".join(("\n".join(j for j in examples[i:i+2]) for i in range(0, min(5, len(examples)), 2))))
     word_file.write("\n\n\n")
@@ -48,7 +48,9 @@ def translate(src, dest, word, multiple):
         soup = BeautifulSoup(r.content, "html.parser")
         div = soup.find("div", {"id": "translations-content"})
         translations = []
-        for a in div.find_all("a"):
+        a_tags = div.find_all("a")
+
+        for a in a_tags:
             translations.append(a.text.strip() + "\n")
 
         section = soup.find("section", {"id": "examples-content"})
@@ -56,25 +58,28 @@ def translate(src, dest, word, multiple):
 
         if multiple:
             output(language, translations, examples, True)
-            save_to_file(word + ".txt", language, translations[:1], examples[:2])
+            save_to_file(f"{word}.txt", language, translations[:1], examples[:2])
         else:
             output(language, translations, examples, False)
-            save_to_file(word + ".txt", language, translations, examples)
-
+            save_to_file(f"{word}.txt", language, translations, examples)
+    elif r.status_code == 404:
+        print(f"Sorry, unable to find {word}")
+        sys.exit()
     else:
-        print("Try again?")
+        print("Something wrong with your internet connection")
+        sys.exit()
 
 
 def output(language, translations, examples, multiple_outputs):
-    print(language, "Translations:")
+    print(f"{language} Translations:")
     if multiple_outputs:
         print(translations[0])
-        print(language, "Example:")
+        print(f"{language} Example:")
         print(examples[0])
         print(examples[1])
     else:
         print("".join(translations[:min(5, len(translations))]))
-        print(language, "Examples:")
+        print(f"{language} Examples:")
         print("\n\n".join(("\n".join(j for j in examples[i:i+2]) for i in range(0, min(5, len(examples)), 2))))
     print("\n")
 
@@ -85,13 +90,20 @@ def main():
     language_to = args[2]
     word_to_translate = args[3]
 
-    if language_to == "all":
-        for i in range(1, 14):
-            if languages.get(i) == language_from:
-                continue
-            translate(language_from, languages.get(i), word_to_translate, True)
+    if language_from not in languages.values():
+        print(f"Sorry, the program doesn't support {language_from}")
+        sys.exit()
+    elif language_to != "all" and language_to not in languages.values():
+        print(f"Sorry, the program doesn't support {language_to}")
+        sys.exit()
     else:
-        translate(language_from, language_to, word_to_translate, False)
+        if language_to == "all":
+            for i in range(1, 14):
+                if languages.get(i) == language_from:
+                    continue
+                translate(language_from, languages.get(i), word_to_translate, True)
+        else:
+            translate(language_from, language_to, word_to_translate, False)
 
 
 if __name__ == "__main__":
