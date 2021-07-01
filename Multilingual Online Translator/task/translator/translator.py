@@ -25,6 +25,7 @@ languages = {
 def save_to_file(filename, language, translations, examples):
     word_file = open(filename, "a", encoding="utf-8")
     word_file.write(language + " Translations:\n")
+
     for t in translations[:min(5, len(translations))]:
         word_file.write(t)
     word_file.write("\n")
@@ -33,6 +34,7 @@ def save_to_file(filename, language, translations, examples):
         word_file.write(language + " Example:\n")
     else:
         word_file.write(language + " Examples:\n")
+
     word_file.write("\n\n".join(("\n".join(j for j in examples[i:i+2]) for i in range(0, min(5, len(examples)), 2))))
     word_file.write("\n\n\n")
     word_file.close()
@@ -43,39 +45,38 @@ def translate(src, dest, word, multiple):
     language = dest.capitalize()
     r = s.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     if r.status_code == 200:
-        print(language, "Translations:")
-
         soup = BeautifulSoup(r.content, "html.parser")
         div = soup.find("div", {"id": "translations-content"})
         translations = []
         for a in div.find_all("a"):
             translations.append(a.text.strip() + "\n")
-        if multiple:
-            print(translations[0])
-        else:
-            print("".join(translations[:min(5, len(translations))]))
 
         section = soup.find("section", {"id": "examples-content"})
         examples = [t.text.strip() for t in section.find_all("span", {"class": "text"})]
 
         if multiple:
-            print(language, "Example:")
-            sentence_from = examples[0]
-            sentence_to = examples[1]
-            print(sentence_from)
-            print(sentence_to)
-        else:
-            print(language, "Examples:")
-            print("\n\n".join(("\n".join(j for j in examples[i:i+2]) for i in range(0, min(5, len(examples)), 2))))
-        print("\n")
-
-        if multiple:
+            output(language, translations, examples, True)
             save_to_file(word + ".txt", language, translations[:1], examples[:2])
         else:
+            output(language, translations, examples, False)
             save_to_file(word + ".txt", language, translations, examples)
 
     else:
         print("Try again?")
+
+
+def output(language, translations, examples, multiple_outputs):
+    print(language, "Translations:")
+    if multiple_outputs:
+        print(translations[0])
+        print(language, "Example:")
+        print(examples[0])
+        print(examples[1])
+    else:
+        print("".join(translations[:min(5, len(translations))]))
+        print(language, "Examples:")
+        print("\n\n".join(("\n".join(j for j in examples[i:i+2]) for i in range(0, min(5, len(examples)), 2))))
+    print("\n")
 
 
 def main():
