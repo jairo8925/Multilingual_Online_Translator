@@ -86,9 +86,20 @@ def output(language, translations, examples, multiple_outputs):
 
 def main():
     args = sys.argv
-    language_from = args[1]
-    language_to = args[2]
-    word_to_translate = args[3]
+    if len(args) == 4:
+        language_from = args[1].lower()
+        language_to = args[2].lower()
+        word_to_translate = args[3]
+    else:
+        for k, v in languages.items():
+            print(f"{str(k)}. {v.capitalize()}")
+        print("Type your language:")
+        language_from = input().lower()
+        print("Type the language you want to translate to:")
+        language_to = input().lower()
+        print("Type the word you want to translate:")
+        word_to_translate = input()
+        print()
 
     if language_from not in languages.values():
         print(f"Sorry, the program doesn't support {language_from}")
