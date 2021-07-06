@@ -8,6 +8,6 @@ There are two options. One is through using command-line arguments as follows:
 <br></br>
 ```python translator.py {source language} {target language} {word}```
 <br></br>
-The other is by running the program and inputting it.
+The other is by running the program and providing input according to instructions.
 
 
